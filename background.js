@@ -258,6 +258,9 @@ function scheduleAutoDuplicateScan() {
   if (!autoScanEnabled) {
     return;
   }
+  runAutoDuplicateNotification().catch((error) => {
+    console.error("Auto duplicate notification failed:", error);
+  });
   autoScanTimer = setTimeout(() => {
     runAutoDuplicateNotification().catch((error) => {
       console.error("Auto duplicate notification failed:", error);
