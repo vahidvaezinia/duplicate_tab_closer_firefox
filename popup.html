@@ -1,0 +1,182 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Duplicate Tab Closer</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        background: #f4f4f4;
+        color: #111;
+      }
+      .panel {
+        padding: 16px;
+        min-width: 300px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.15rem;
+      }
+      #summary {
+        margin: 0 0 12px;
+        line-height: 1.4;
+      }
+      .counts {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .card {
+        flex: 1;
+        background: #fff;
+        padding: 10px 12px;
+        border-radius: 8px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      }
+      .card label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: #666;
+        letter-spacing: 0.1em;
+      }
+      .card strong {
+        display: block;
+        font-size: 1.4rem;
+        margin-top: 4px;
+      }
+      #details {
+        margin-top: 8px;
+        max-height: 220px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .detail-entry {
+        background: #fff;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .detail-url {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #111;
+        word-break: break-all;
+      }
+      .detail-meta {
+        font-size: 0.75rem;
+        color: #555;
+        margin-bottom: 6px;
+      }
+      .tab-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+        font-size: 0.75rem;
+      }
+      .tab-list li {
+        padding: 2px 0;
+      }
+      .tab-list li.kept {
+        color: #0a7cff;
+        font-weight: 600;
+      }
+      .buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      button {
+        padding: 8px 14px;
+        border-radius: 6px;
+        border: none;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+      #cancel-button {
+        background: #dadada;
+        color: #111;
+      }
+      #close-button {
+        background: #0a7cff;
+        color: #fff;
+      }
+      #close-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .note {
+        margin-top: 12px;
+        font-size: 0.75rem;
+        color: #555;
+      }
+      .options-summary {
+        margin-bottom: 12px;
+        font-size: 0.75rem;
+        color: #444;
+      }
+      .options-panel {
+        background: #fff;
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      }
+      .options-panel h2 {
+        margin: 12px 0 6px;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #555;
+      }
+      .options-panel label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>Duplicate Tab Closer</h1>
+      <p id="summary">Checking tabs…</p>
+      <p id="options-summary" class="options-summary">Loading settings…</p>
+      <div class="counts">
+        <div class="card">
+          <label>duplicate groups</label>
+          <strong id="group-count">0</strong>
+        </div>
+        <div class="card">
+          <label>tabs to close</label>
+          <strong id="close-count">0</strong>
+        </div>
+      </div>
+      <div class="options-panel" id="options-panel">
+        <h2>Matching rules</h2>
+        <label><input type="checkbox" id="match-ignore-case" />Ignore case in URL</label>
+        <label><input type="checkbox" id="match-ignore-www" />Ignore 'www' in domain</label>
+        <label><input type="checkbox" id="match-ignore-hash" />Ignore hash part</label>
+        <label><input type="checkbox" id="match-ignore-search" />Ignore search part</label>
+        <label><input type="checkbox" id="match-ignore-path" />Ignore path part</label>
+        <label><input type="checkbox" id="match-compare-title" />Compare with title</label>
+        <h2>Priority</h2>
+        <label><input type="radio" name="priority" value="keepOlder" />Keep older tab</label>
+        <label><input type="radio" name="priority" value="keepNewer" />Keep newer tab</label>
+        <h2>Scope</h2>
+        <label><input type="radio" name="scope" value="all" />All windows</label>
+        <label><input type="radio" name="scope" value="active" />Active window only</label>
+      </div>
+      <div id="details"></div>
+      <div class="buttons">
+        <button id="cancel-button" type="button">Cancel</button>
+        <button id="close-button" type="button" disabled>Close duplicates</button>
+      </div>
+      <p class="note">Exact URL matches only; about: or moz-extension: tabs are skipped.</p>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

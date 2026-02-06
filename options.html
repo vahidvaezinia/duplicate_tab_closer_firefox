@@ -1,0 +1,85 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Duplicate Tab Closer options</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        background: #f7f7f7;
+        color: #111;
+      }
+      main {
+        padding: 24px;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin-top: 0;
+        font-size: 1.4rem;
+      }
+      section {
+        background: #fff;
+        padding: 16px;
+        border-radius: 10px;
+        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+      }
+      section h2 {
+        margin-top: 0;
+        font-size: 1rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #555;
+      }
+      label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+      }
+      label input {
+        margin: 0;
+      }
+      .status {
+        font-size: 0.85rem;
+        color: #0a7cff;
+        min-height: 1.2em;
+      }
+      .note {
+        font-size: 0.8rem;
+        color: #555;
+        margin: 12px 0 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Duplicate Tab Closer options</h1>
+      <section>
+        <h2>Matching rules</h2>
+        <label><input type="checkbox" id="match-ignore-case" />Ignore case in URL</label>
+        <label><input type="checkbox" id="match-ignore-www" />Ignore 'www' in domain</label>
+        <label><input type="checkbox" id="match-ignore-hash" />Ignore hash part</label>
+        <label><input type="checkbox" id="match-ignore-search" />Ignore search part</label>
+        <label><input type="checkbox" id="match-ignore-path" />Ignore path part</label>
+        <label><input type="checkbox" id="match-compare-title" />Compare with title</label>
+      </section>
+      <section>
+        <h2>Priority</h2>
+        <label><input type="radio" name="priority" value="keepOlder" />Keep older tab</label>
+        <label><input type="radio" name="priority" value="keepNewer" />Keep newer tab</label>
+      </section>
+      <section>
+        <h2>Scope</h2>
+        <label><input type="radio" name="scope" value="all" />All windows</label>
+        <label><input type="radio" name="scope" value="active" />Active window only</label>
+      </section>
+      <div class="status" id="status-message"></div>
+      <p class="note">Changes are saved automatically when you modify the controls.</p>
+    </main>
+    <script src="options.js"></script>
+  </body>
+</html>
