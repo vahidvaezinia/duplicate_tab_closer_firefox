@@ -1,9 +1,6 @@
 ﻿const STORAGE_KEY = "dupTabCloserSettings";
 const CONTEXT_MENU_ID = "duplicate-tab-closer";
 const NOTIFICATION_ICON = browser.runtime.getURL("icons/pro-icon.svg");
-const AUTO_NOTIFICATION_ID = "duplicate-tab-auto-detected";
-const BADGE_CLEAR_TIMEOUT = 4000;
-
 const DEFAULT_SETTINGS = {
   matching: {
     ignoreCase: false,
@@ -14,15 +11,10 @@ const DEFAULT_SETTINGS = {
     compareTitle: false
   },
   priority: "keepOlder",
-  scope: "all",
-  autoScan: true
+  scope: "all"
 };
 
 let lastScan = null;
-let autoScanTimer = null;
-let lastAutoNotificationCount = 0;
-let autoScanEnabled = DEFAULT_SETTINGS.autoScan;
-let badgeTimeout = null;
 
 async function getSettings() {
   const stored = (await browser.storage.local.get(STORAGE_KEY))[STORAGE_KEY] || {};
@@ -34,33 +26,6 @@ async function getSettings() {
       ...(stored.matching || {})
     }
   };
-}
-
-function setBadge(text, persist = true) {
-  if (badgeTimeout) {
-    clearTimeout(badgeTimeout);
-    badgeTimeout = null;
-  }
-  if (!text) {
-    browser.browserAction.setBadgeText({ text: "" });
-    return;
-  }
-  browser.browserAction.setBadgeBackgroundColor({ color: "#0a7cff" });
-  browser.browserAction.setBadgeText({ text: `${text}` });
-  if (!persist) {
-    badgeTimeout = setTimeout(() => {
-      browser.browserAction.setBadgeText({ text: "" });
-      badgeTimeout = null;
-    }, BADGE_CLEAR_TIMEOUT);
-  }
-}
-
-function clearBadge() {
-  if (badgeTimeout) {
-    clearTimeout(badgeTimeout);
-    badgeTimeout = null;
-  }
-  browser.browserAction.setBadgeText({ text: "" });
 }
 
 function normalizeUrl(rawUrl, title, matching) {
@@ -193,81 +158,6 @@ async function scanDuplicateTabs() {
   };
 }
 
-function clearAutoNotification() {
-  browser.notifications.clear(AUTO_NOTIFICATION_ID).catch(() => {});
-}
-
-async function refreshAutoScanState() {
-  const settings = await getSettings();
-  const enabled = Boolean(settings.autoScan);
-  autoScanEnabled = enabled;
-  if (!enabled) {
-    if (autoScanTimer) {
-      clearTimeout(autoScanTimer);
-      autoScanTimer = null;
-    }
-    lastAutoNotificationCount = 0;
-    clearAutoNotification();
-  }
-  return enabled;
-}
-
-async function runAutoDuplicateNotification() {
-  autoScanTimer = null;
-  if (!autoScanEnabled) {
-    return;
-  }
-  try {
-    const scan = await scanDuplicateTabs();
-    if (scan.toCloseCount === 0) {
-      if (lastAutoNotificationCount > 0) {
-        lastAutoNotificationCount = 0;
-        clearAutoNotification();
-        clearBadge();
-      }
-      return;
-    }
-    if (scan.toCloseCount === lastAutoNotificationCount) {
-      return;
-    }
-    lastAutoNotificationCount = scan.toCloseCount;
-
-    const groupText =
-      scan.duplicateGroupCount === 1
-        ? "1 duplicate group"
-        : `${scan.duplicateGroupCount} duplicate groups`;
-    const tabText = `${scan.toCloseCount} tab${scan.toCloseCount === 1 ? "" : "s"}`;
-
-    browser.notifications.create(AUTO_NOTIFICATION_ID, {
-      type: "basic",
-      iconUrl: NOTIFICATION_ICON,
-      title: "Duplicate tabs detected",
-      message: `${groupText} (${tabText}) found. Open the popup to clean up.`,
-      silent: true
-    });
-    setBadge(scan.toCloseCount);
-  } catch (error) {
-    console.error("Auto duplicate scan failed:", error);
-  }
-}
-
-function scheduleAutoDuplicateScan() {
-  if (autoScanTimer) {
-    clearTimeout(autoScanTimer);
-  }
-  if (!autoScanEnabled) {
-    return;
-  }
-  runAutoDuplicateNotification().catch((error) => {
-    console.error("Auto duplicate notification failed:", error);
-  });
-  autoScanTimer = setTimeout(() => {
-    runAutoDuplicateNotification().catch((error) => {
-      console.error("Auto duplicate notification failed:", error);
-    });
-  }, 1200);
-}
-
 async function closeDuplicateTabs() {
   if (!lastScan || lastScan.toCloseCount === 0) {
     lastScan = await scanDuplicateTabs();
@@ -292,12 +182,6 @@ async function closeDuplicateTabs() {
     title: "Duplicate tabs closed",
     message: `Closed ${idsToClose.length} duplicate tab${idsToClose.length === 1 ? "" : "s"}.`
   });
-
-    if (autoScanEnabled) {
-      lastAutoNotificationCount = 0;
-      clearAutoNotification();
-      clearBadge();
-    }
 
   return idsToClose.length;
 }
@@ -336,39 +220,5 @@ browser.menus.onClicked.addListener((info) => {
   }
 });
 
-browser.tabs.onCreated.addListener(scheduleAutoDuplicateScan);
-browser.tabs.onUpdated.addListener(scheduleAutoDuplicateScan);
-browser.tabs.onRemoved.addListener(() => {
-  lastAutoNotificationCount = 0;
-  scheduleAutoDuplicateScan();
-});
-browser.tabs.onAttached.addListener(scheduleAutoDuplicateScan);
-browser.tabs.onDetached.addListener(scheduleAutoDuplicateScan);
-  browser.windows.onFocusChanged.addListener((windowId) => {
-    if (windowId !== browser.windows.WINDOW_ID_NONE) {
-      scheduleAutoDuplicateScan();
-    }
-  });
-  browser.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes[STORAGE_KEY]) {
-      autoScanEnabled = Boolean(
-        changes[STORAGE_KEY].newValue?.autoScan ?? DEFAULT_SETTINGS.autoScan
-      );
-      if (autoScanEnabled) {
-        scheduleAutoDuplicateScan();
-      } else {
-        if (autoScanTimer) {
-          clearTimeout(autoScanTimer);
-          autoScanTimer = null;
-        }
-        lastAutoNotificationCount = 0;
-        clearAutoNotification();
-      }
-    }
-  });
-
 browser.runtime.onInstalled.addListener(createContextMenu);
 createContextMenu();
-refreshAutoScanState()
-  .then(() => scheduleAutoDuplicateScan())
-  .catch((error) => console.error("Auto scan initialization failed:", error));

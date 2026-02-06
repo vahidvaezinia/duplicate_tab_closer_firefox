@@ -9,8 +9,7 @@ const DEFAULT_SETTINGS = {
     compareTitle: false
   },
   priority: "keepOlder",
-  scope: "all",
-  autoScan: true
+  scope: "all"
 };
 
 const summaryEl = document.getElementById("summary");
@@ -21,7 +20,6 @@ const closeButton = document.getElementById("close-button");
 const cancelButton = document.getElementById("cancel-button");
 const detailsEl = document.getElementById("details");
 const optionsPanel = document.getElementById("options-panel");
-const autoScanInput = document.getElementById("auto-scan-toggle");
 
 const matchingInputs = {
   ignoreCase: document.getElementById("match-ignore-case"),
@@ -53,9 +51,8 @@ function describeOptions(snapshot) {
 
   const priorityText = snapshot.priority === "keepNewer" ? "keep newer tab" : "keep older tab";
   const scopeText = snapshot.scope === "active" ? "active window" : "all windows";
-  const autoScanText = snapshot.autoScan ? "Auto scan enabled" : "Auto scan disabled";
 
-  return `Matching rules: ${matchingText}. Priority: ${priorityText}. Scope: ${scopeText}. ${autoScanText}.`;
+  return `Matching rules: ${matchingText}. Priority: ${priorityText}. Scope: ${scopeText}.`;
 }
 
 function renderOptionsSummary(snapshot) {
@@ -117,9 +114,6 @@ function applySettingsToUI(settings) {
   if (scopeInput) {
     scopeInput.checked = true;
   }
-  if (autoScanInput) {
-    autoScanInput.checked = Boolean(settings.autoScan);
-  }
 }
 
 function readSettingsFromUI() {
@@ -129,8 +123,7 @@ function readSettingsFromUI() {
   });
   const priority = document.querySelector("input[name='priority']:checked")?.value || DEFAULT_SETTINGS.priority;
   const scope = document.querySelector("input[name='scope']:checked")?.value || DEFAULT_SETTINGS.scope;
-  const autoScan = Boolean(autoScanInput?.checked);
-  return { matching, priority, scope, autoScan };
+  return { matching, priority, scope };
 }
 
 async function saveSettingsFromUI() {
