@@ -36,7 +36,7 @@ async function getSettings() {
   };
 }
 
-function setBadge(text) {
+function setBadge(text, persist = true) {
   if (badgeTimeout) {
     clearTimeout(badgeTimeout);
     badgeTimeout = null;
@@ -46,22 +46,21 @@ function setBadge(text) {
     return;
   }
   browser.browserAction.setBadgeBackgroundColor({ color: "#0a7cff" });
-  browser.browserAction.setBadgeText({ text });
+  browser.browserAction.setBadgeText({ text: `${text}` });
+  if (!persist) {
+    badgeTimeout = setTimeout(() => {
+      browser.browserAction.setBadgeText({ text: "" });
+      badgeTimeout = null;
+    }, BADGE_CLEAR_TIMEOUT);
+  }
 }
 
-function clearBadge(timeout = 0) {
+function clearBadge() {
   if (badgeTimeout) {
     clearTimeout(badgeTimeout);
     badgeTimeout = null;
   }
-  if (timeout > 0) {
-    badgeTimeout = setTimeout(() => {
-      browser.browserAction.setBadgeText({ text: "" });
-      badgeTimeout = null;
-    }, timeout);
-  } else {
-    browser.browserAction.setBadgeText({ text: "" });
-  }
+  browser.browserAction.setBadgeText({ text: "" });
 }
 
 function normalizeUrl(rawUrl, title, matching) {
@@ -246,7 +245,7 @@ async function runAutoDuplicateNotification() {
       message: `${groupText} (${tabText}) found. Open the popup to clean up.`,
       silent: true
     });
-    setBadge(`${scan.toCloseCount}`);
+    setBadge(scan.toCloseCount);
   } catch (error) {
     console.error("Auto duplicate scan failed:", error);
   }
