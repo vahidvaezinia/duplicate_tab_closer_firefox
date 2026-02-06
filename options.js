@@ -9,7 +9,8 @@ const DEFAULT_SETTINGS = {
     compareTitle: false
   },
   priority: "keepOlder",
-  scope: "all"
+  scope: "all",
+  autoScan: true
 };
 
 const matchingInputs = {
@@ -20,6 +21,7 @@ const matchingInputs = {
   ignorePath: document.getElementById("match-ignore-path"),
   compareTitle: document.getElementById("match-compare-title")
 };
+const autoScanInput = document.getElementById("opt-auto-scan");
 const statusEl = document.getElementById("status-message");
 let statusTimer = null;
 
@@ -37,6 +39,9 @@ function applySettings(settings) {
   if (scope) {
     scope.checked = true;
   }
+  if (autoScanInput) {
+    autoScanInput.checked = Boolean(settings.autoScan);
+  }
 }
 
 function readSettingsFromUI() {
@@ -49,7 +54,8 @@ function readSettingsFromUI() {
   return {
     matching,
     priority,
-    scope
+    scope,
+    autoScan: Boolean(autoScanInput?.checked)
   };
 }
 
