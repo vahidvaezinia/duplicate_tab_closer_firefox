@@ -8,7 +8,7 @@ A lightweight Manifest V2 Firefox WebExtension that scans all windows for exact 
 - **Exact/normalized matching** – background logic normalizes URLs via the selected options before detecting duplicates, ensuring you never accidentally close unique tabs.
 - **Detailed confirmation** – popup lists each duplicate group, highlights the preserved tab, reports how many tabs will be closed, and keeps the same custom notification icon for completion feedback.
 - **Context menu + toolbar action** – both launch the popup so you can trigger duplicates from anywhere in Firefox.
-- **Automatic detection** – the background script watches tab/window activity, applies your matching rules, and fires a **silent** notification whenever duplicate groups crop up so you can clean them up when ready; auto notifications can be toggled off directly in the popup.
+- **Automatic detection** – the background script watches tab/window activity, applies your matching rules, fires a **silent** notification (and briefly badges the toolbar button) whenever duplicate groups crop up so you can clean them up when ready; auto notifications can be toggled off directly in the popup.
 - **Settings persistence** – preferences are stored in `browser.storage.local`, so the popup and background scans honor your choices until you change them again.
 
 ## Installation (for development/testing)

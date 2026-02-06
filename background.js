@@ -2,6 +2,7 @@
 const CONTEXT_MENU_ID = "duplicate-tab-closer";
 const NOTIFICATION_ICON = browser.runtime.getURL("icons/pro-icon.svg");
 const AUTO_NOTIFICATION_ID = "duplicate-tab-auto-detected";
+const BADGE_CLEAR_TIMEOUT = 4000;
 
 const DEFAULT_SETTINGS = {
   matching: {
@@ -21,6 +22,7 @@ let lastScan = null;
 let autoScanTimer = null;
 let lastAutoNotificationCount = 0;
 let autoScanEnabled = DEFAULT_SETTINGS.autoScan;
+let badgeTimeout = null;
 
 async function getSettings() {
   const stored = (await browser.storage.local.get(STORAGE_KEY))[STORAGE_KEY] || {};
@@ -32,6 +34,34 @@ async function getSettings() {
       ...(stored.matching || {})
     }
   };
+}
+
+function setBadge(text) {
+  if (badgeTimeout) {
+    clearTimeout(badgeTimeout);
+    badgeTimeout = null;
+  }
+  if (!text) {
+    browser.browserAction.setBadgeText({ text: "" });
+    return;
+  }
+  browser.browserAction.setBadgeBackgroundColor({ color: "#0a7cff" });
+  browser.browserAction.setBadgeText({ text });
+}
+
+function clearBadge(timeout = 0) {
+  if (badgeTimeout) {
+    clearTimeout(badgeTimeout);
+    badgeTimeout = null;
+  }
+  if (timeout > 0) {
+    badgeTimeout = setTimeout(() => {
+      browser.browserAction.setBadgeText({ text: "" });
+      badgeTimeout = null;
+    }, timeout);
+  } else {
+    browser.browserAction.setBadgeText({ text: "" });
+  }
 }
 
 function normalizeUrl(rawUrl, title, matching) {
@@ -194,6 +224,7 @@ async function runAutoDuplicateNotification() {
       if (lastAutoNotificationCount > 0) {
         lastAutoNotificationCount = 0;
         clearAutoNotification();
+        clearBadge();
       }
       return;
     }
@@ -215,6 +246,7 @@ async function runAutoDuplicateNotification() {
       message: `${groupText} (${tabText}) found. Open the popup to clean up.`,
       silent: true
     });
+    setBadge(`${scan.toCloseCount}`);
   } catch (error) {
     console.error("Auto duplicate scan failed:", error);
   }
@@ -259,10 +291,11 @@ async function closeDuplicateTabs() {
     message: `Closed ${idsToClose.length} duplicate tab${idsToClose.length === 1 ? "" : "s"}.`
   });
 
-  if (autoScanEnabled) {
-    lastAutoNotificationCount = 0;
-    clearAutoNotification();
-  }
+    if (autoScanEnabled) {
+      lastAutoNotificationCount = 0;
+      clearAutoNotification();
+      clearBadge();
+    }
 
   return idsToClose.length;
 }
